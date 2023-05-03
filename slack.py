@@ -16,25 +16,7 @@ except ModuleNotFoundError:
 # Initialize the Slack API client and the bot app
 client = WebClient(token=bot_token)
 app = App(token=bot_token)
-attachments = [
-    {"type": "divider"},
-    {
-        "type": "actions",
-        "elements": [
-            {
-                "type": "button",
-                "text": {"type": "plain_text", "text": "Approve"},
-                "style": "primary",
-                "value": "click_me_123",
-            },
-            {
-                "type": "button",
-                "text": {"type": "plain_text", "text": "Deny"},
-                "style": "danger",
-                "value": "click_me_123",
-            },
-        ],
-    },
+back = [
     {
         "fallback": "Upgrade your Slack client to use messages like these.",
         "color": "#3AA3E3",
@@ -56,6 +38,29 @@ attachments = [
                 "type": "button",
                 "value": "nonattend",
             }
+        ],
+    },
+]
+attachments = [
+    {
+        "type": "actions",
+        "elements": [
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "emoji": True,
+                    "text": "Approve",
+                },
+                "style": "primary",
+                "value": "attend",
+            },
+            {
+                "type": "button",
+                "text": {"type": "plain_text", "emoji": True, "text": "Deny"},
+                "style": "danger",
+                "value": "nonattend",
+            },
         ],
     },
 ]
