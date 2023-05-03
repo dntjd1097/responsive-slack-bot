@@ -124,7 +124,7 @@ async def get_message(payload, a):
 
                             person["text"][1] = str(int(person["text"][1]) + 1)
                             person["text"] = " ".join(person["text"])
-            print(block["elements"][0]["text"])
+            # print(block["elements"][0]["text"])
 
         except KeyError as e:
             pass
@@ -140,7 +140,7 @@ async def get_message(payload, a):
                 for sub_key in item[key].keys():
                     if isinstance(item[key][sub_key], str):
                         item[key][sub_key] = unescape(item[key][sub_key])
-    print(user_id)
+    # print(user_id)
     update(channel_id, message_ts, text, data)
 
 
