@@ -5,15 +5,19 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import asyncio
 import html
-from config import *
 
-# app_token = os.environ["SLACK_APP_TOKEN"]
-# bot_token = os.environ["SLACK_BOT_TOKEN"]
+try:
+    from config import *
+except ModuleNotFoundError:
+    app_token = os.environ["SLACK_APP_TOKEN"]
+    bot_token = os.environ["SLACK_BOT_TOKEN"]
+
 
 # Initialize the Slack API client and the bot app
 client = WebClient(token=bot_token)
 app = App(token=bot_token)
 attachments = [
+    {"type": "divider"},
     {
         "fallback": "Upgrade your Slack client to use messages like these.",
         "color": "#3AA3E3",
@@ -45,39 +49,6 @@ message = {
     "attachments": attachments,
 }
 
-# Send the message to the channel
-
-
-def get_data(payload):
-    channel_id = payload["channel"]["id"]
-
-    user_id = payload["user"]["id"]
-    user_name = payload["user"]["name"]
-    message_ts = payload["message_ts"]
-    message_text = payload["original_message"]
-
-    comment = f"<@{user_id}>"
-    start = message_text.find("참석:")
-    insert = message_text.find(comment)
-    end = message_text.find("불참석:")
-    index = message_text.find("참석:") + 3
-    find_index = message_text.find(comment) + 3
-    end_index = message_text.find("불참석:") + 4
-    return (
-        channel_id,
-        user_id,
-        user_name,
-        message_ts,
-        message_text,
-        comment,
-        start,
-        insert,
-        end,
-        index,
-        find_index,
-        end_index,
-    )
-
 
 def update(channel_id, message_ts, text, new_text):
     response = client.chat_update(
@@ -96,26 +67,64 @@ async def get_message(payload, a):
     user_name = payload["user"]["name"]
     message_ts = payload["message_ts"]
     text = payload["original_message"]["text"]
-    comment = f"<@{user_id}>"
+    comment = f"<@{user_id}>, "
     data = payload["original_message"]["blocks"]
 
     context_block_index = None
     if a == 1:
         status = "참석:"
+        op_status = "불참:"
+        op_ps_status = "*불참*"
+        ps_status = "*참석*"
     elif a == 0:
         status = "불참:"
+        op_status = "참석:"
+        ps_status = "*불참*"
+        op_ps_status = "*참석*"
+    insert = {
+        "type": "section",
+        "fields": [
+            {"type": "mrkdwn", "text": "*참석*\n 0 *(명)*"},
+            {"type": "mrkdwn", "text": "*불참*\n 0 *(명)*"},
+        ],
+    }
+    # print(data)
     for block in data:
         try:
             # 참석 클릭 시
-            if status in block["elements"][0]["text"]:
-                block["elements"][0]["text"] += comment
-                print(block["elements"][0]["text"])
+            # print(block)
 
-            # 불참 클릭 시
-            elif status in block["elements"][0]["text"]:
-                block["elements"][0]["text"] += comment
-                print(block["elements"][0]["text"])
-            #
+            if "divider" in data[-1]["type"]:
+                data.append(insert)
+
+            if op_status in block["elements"][0]["text"]:
+                if block["elements"][0]["text"].find(comment) > 0:
+                    block["elements"][0]["text"] = block["elements"][0]["text"].replace(
+                        comment, ""
+                    )
+                    for person in data[-1]["fields"]:
+                        if person["text"].find(op_ps_status) == 0:
+                            person["text"] = person["text"].split()
+                            person["text"][0] += "\n"
+                            if int(person["text"][1]) > 0:
+                                person["text"][1] = str(int(person["text"][1]) - 1)
+
+                            person["text"] = " ".join(person["text"])
+
+            if status in block["elements"][0]["text"]:
+                if comment in block["elements"][0]["text"]:
+                    pass
+                else:
+                    # pass
+                    block["elements"][0]["text"] += comment
+                    for person in data[-1]["fields"]:
+                        if person["text"].find(ps_status) == 0:
+                            person["text"] = person["text"].split()
+                            person["text"][0] += "\n"
+
+                            person["text"][1] = str(int(person["text"][1]) + 1)
+                            person["text"] = " ".join(person["text"])
+            print(block["elements"][0]["text"])
 
         except KeyError as e:
             pass
@@ -131,67 +140,8 @@ async def get_message(payload, a):
                 for sub_key in item[key].keys():
                     if isinstance(item[key][sub_key], str):
                         item[key][sub_key] = unescape(item[key][sub_key])
-
+    print(user_id)
     update(channel_id, message_ts, text, data)
-
-
-# print(data)
-
-# print(channel_id,message_ts)
-# for i, block in enumerate(data['blocks']):
-#     try:
-#         if('참석:' in block["elements"][0]["text"]):
-#             print(block["elements"][0]["text"])
-
-#         if block['type'] == 'context' and block['block_id'] == 'npX':
-#             context_block_index = i
-#             break
-#     except KeyError:
-#         pass
-# if context_block_index is not None:
-#     print(data['blocks'][context_block_index]['elements'][0]['text'])
-"""
-async def attend_edit_message(payload):
-    channel_id,user_id,user_name,message_ts,message_text,comment,start,insert,end,index,find_index,end_index=get_data(payload)
-    new_text = message_text[:index] + comment + message_text[index:]
-    #print(comment)
-    try:
-        if start < insert < end:
-            return
-        elif (end<insert) :
-            message_text=message_text.replace(comment,"")
-            new_text = message_text[:index] + comment + message_text[index:]
-            update(channel_id,message_ts,new_text)
-        elif insert < 0:
-            update(channel_id,message_ts,new_text)
-
-    except AttributeError as e:
-        print(f"Error updating message: {e}")
-    except SlackApiError as e:
-        print(f"Error updating message: {e}")
-
-
-async def nonattend_edit_message(payload):
-    channel_id,user_id,user_name,message_ts,message_text,comment,start,insert,end,index,find_index,end_index=get_data(payload)
-    new_text = message_text[:end_index] + comment + message_text[end_index:]
-    #print(comment)
-    try:
-        if end < insert:
-            return
-        elif end>insert>-1:
-            message_text=message_text.replace(comment,"")
-            new_text = message_text[:end_index] + comment + message_text[end_index:]
-            update(channel_id,message_ts,new_text)
-        elif insert < 0:
-            update(channel_id,message_ts,new_text)
-
-    except AttributeError as e:
-        print(f"Error updating message: {e}")
-    except SlackApiError as e:
-        print(f"Error updating message: {e}")
-"""
-
-# Add the listener for the button click
 
 
 @app.action("attend")
