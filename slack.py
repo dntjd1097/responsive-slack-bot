@@ -19,6 +19,23 @@ app = App(token=bot_token)
 attachments = [
     {"type": "divider"},
     {
+        "type": "actions",
+        "elements": [
+            {
+                "type": "button",
+                "text": {"type": "plain_text", "emoji": true, "text": "Approve"},
+                "style": "primary",
+                "value": "click_me_123",
+            },
+            {
+                "type": "button",
+                "text": {"type": "plain_text", "emoji": true, "text": "Deny"},
+                "style": "danger",
+                "value": "click_me_123",
+            },
+        ],
+    },
+    {
         "fallback": "Upgrade your Slack client to use messages like these.",
         "color": "#3AA3E3",
         "attachment_type": "default",
