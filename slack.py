@@ -23,13 +23,13 @@ attachments = [
         "elements": [
             {
                 "type": "button",
-                "text": {"type": "plain_text", "emoji": true, "text": "Approve"},
+                "text": {"type": "plain_text", "text": "Approve"},
                 "style": "primary",
                 "value": "click_me_123",
             },
             {
                 "type": "button",
-                "text": {"type": "plain_text", "emoji": true, "text": "Deny"},
+                "text": {"type": "plain_text", "text": "Deny"},
                 "style": "danger",
                 "value": "click_me_123",
             },
