@@ -50,19 +50,21 @@ attachments = [
                 "text": {
                     "type": "plain_text",
                     "emoji": True,
-                    "text": "Approve",
+                    "text": "참석",
                 },
                 "style": "primary",
                 "value": "attend",
+                "action_id": "attend",
             },
             {
                 "type": "button",
-                "text": {"type": "plain_text", "emoji": True, "text": "Deny"},
+                "text": {"type": "plain_text", "emoji": True, "text": "불참"},
                 "style": "danger",
                 "value": "nonattend",
+                "action_id": "nonattend",
             },
         ],
-    },
+    }
 ]
 # Define the message to send
 message = {
@@ -115,15 +117,16 @@ async def get_message(payload, a):
         try:
             # 참석 클릭 시
             # print(block)
-
+            """
             if "divider" in data[-1]["type"]:
                 data.append(insert)
-
+            """
             if op_status in block["elements"][0]["text"]:
                 if block["elements"][0]["text"].find(comment) > 0:
                     block["elements"][0]["text"] = block["elements"][0]["text"].replace(
                         comment, ""
                     )
+                    """
                     for person in data[-1]["fields"]:
                         if person["text"].find(op_ps_status) == 0:
                             person["text"] = person["text"].split()
@@ -132,20 +135,21 @@ async def get_message(payload, a):
                                 person["text"][1] = str(int(person["text"][1]) - 1)
 
                             person["text"] = " ".join(person["text"])
-
+"""
             if status in block["elements"][0]["text"]:
                 if comment in block["elements"][0]["text"]:
                     pass
                 else:
                     # pass
                     block["elements"][0]["text"] += comment
+                    """
                     for person in data[-1]["fields"]:
                         if person["text"].find(ps_status) == 0:
                             person["text"] = person["text"].split()
                             person["text"][0] += "\n"
 
                             person["text"][1] = str(int(person["text"][1]) + 1)
-                            person["text"] = " ".join(person["text"])
+                            person["text"] = " ".join(person["text"])"""
             # print(block["elements"][0]["text"])
 
         except KeyError as e:
@@ -178,6 +182,8 @@ def handle_attent_edit_button_click(ack, body, logger):
 def handle_nonattent_edit_button_click(ack, body, logger):
     ack()
     logger.info(body)
+    # print(logger.info(body))
+    print(body)
     asyncio.run(get_message(body, 0))
     # asyncio.run(nonattend_edit_message(body))
 
