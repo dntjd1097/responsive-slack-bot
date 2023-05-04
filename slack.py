@@ -41,13 +41,13 @@ async def get_message(payload, a):
     # print(data)
     context_block_index = None
     if a == 1:
-        status = "참석:"
-        op_status = "불참:"
+        status = "*참석*\n "
+        op_status = "*불참*\n "
         op_ps_status = "*불참인원*"
         ps_status = "*참석인원*"
     elif a == 0:
-        status = "불참:"
-        op_status = "참석:"
+        status = "*불참*\n "
+        op_status = "*참석*\n "
         ps_status = "*불참인원*"
         op_ps_status = "*참석인원*"
     insert = {
@@ -66,9 +66,52 @@ async def get_message(payload, a):
             # print(block)
             # 참석 클릭 시
             # print(block)
+            # print(block)
+            if "section" in block["type"]:
+                # print(block["fields"])
+                """
+                if op_status in block["fields"][1]["text"]:
+                    a = block["fields"][1]["text"]
+                    a = a.replace(comment, "")
+                    for person in data[-2]["fields"]:
+                        if person["text"].find(op_ps_status) == 0:
+                            person["text"] = person["text"].split()
+                            person["text"][0] += "\n"
+                            if int(person["text"][1]) > 0:
+                                person["text"][1] = str(int(person["text"][1]) - 1)
 
-            # data.append(insert)
+                            person["text"] = " ".join(person["text"])
+                    print(block["fields"][0])
+                """
 
+                for a in block["fields"]:
+                    if op_status in a["text"]:
+                        a["text"] = a["text"].replace(comment, "")
+                        for person in data[-2]["fields"]:
+                            if person["text"].find(op_ps_status) == 0:
+                                person["text"] = person["text"].split()
+                                person["text"][0] += "\n"
+                                if int(person["text"][1]) > 0:
+                                    person["text"][1] = str(a["text"].count("@"))
+
+                                person["text"] = " ".join(person["text"])
+                    if status in a["text"]:
+                        if comment in a["text"]:
+                            pass
+                        else:
+                            # pass
+                            a["text"] += comment
+
+                            for person in data[-2]["fields"]:
+                                if person["text"].find(ps_status) == 0:
+                                    person["text"] = person["text"].split()
+                                    # print(person["text"])
+                                    person["text"][0] += "\n"
+
+                                    person["text"][1] = str(a["text"].count("@"))
+                                    person["text"] = " ".join(person["text"])
+                # data.append(insert)
+            """
             if op_status in block["elements"][0]["text"]:
                 if block["elements"][0]["text"].find(comment) > 0:
                     block["elements"][0]["text"] = block["elements"][0]["text"].replace(
@@ -100,7 +143,7 @@ async def get_message(payload, a):
                             person["text"][1] = str(int(person["text"][1]) + 1)
                             person["text"] = " ".join(person["text"])
             # print(block["elements"][0]["text"])
-
+            """
         except KeyError as e:
             pass
 
@@ -116,7 +159,7 @@ async def get_message(payload, a):
                     if isinstance(item[key][sub_key], str):
                         item[key][sub_key] = unescape(item[key][sub_key])
     # print(user_id)
-
+    # print(data)
     update(channel_id, message_ts, text, data)
 
 
