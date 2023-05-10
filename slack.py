@@ -60,7 +60,6 @@ async def get_message(payload, a):
 
     if "divider" in data[-2]["type"]:
         data.insert(-1, insert)
-
     for index, block in enumerate(data):
         try:
             if "context" in block["type"]:
@@ -68,41 +67,47 @@ async def get_message(payload, a):
                 pattern = r"\d{4}-\d{2}-\d{2}"
                 matches = re.findall(pattern, get_date)
                 get_date = matches[0]
-            if ("actions" in block["type"]) and get_date and get_date == today:
+            if ("actions" in block["type"]) and get_date and get_date < today:
                 check = index
+        except Exception as e : 
+            print(e)
+    if check:
+        print(check)
+        data = payload["message"]["blocks"]
+        del data[index]
+    else:
 
-            if "section" in block["type"]:
-                for a in block["fields"]:
-                    if op_status in a["text"]:
-                        a["text"] = a["text"].replace(comment, "")
-                        for person in data[-2]["fields"]:
-                            if person["text"].find(op_ps_status) == 0:
-                                person["text"] = person["text"].split()
-                                person["text"][0] += "\n"
-                                if int(person["text"][1]) > 0:
-                                    person["text"][1] = str(a["text"].count("@"))
-
-                                person["text"] = " ".join(person["text"])
-                    if status in a["text"]:
-                        if comment in a["text"]:
-                            pass
-                        else:
-                            # pass
-                            a["text"] += comment
-
+        for index, block in enumerate(data):
+            try:
+                if "section" in block["type"]:
+                    for a in block["fields"]:
+                        if op_status in a["text"]:
+                            a["text"] = a["text"].replace(comment, "")
                             for person in data[-2]["fields"]:
-                                if person["text"].find(ps_status) == 0:
+                                if person["text"].find(op_ps_status) == 0:
                                     person["text"] = person["text"].split()
                                     person["text"][0] += "\n"
-                                    person["text"][1] = str(a["text"].count("@"))
-                                    person["text"] = " ".join(person["text"])
+                                    if int(person["text"][1]) > 0:
+                                        person["text"][1] = str(a["text"].count("@"))
 
-        except KeyError as e:
-            pass
-        if check:
-            print(check)
-            data = payload["message"]["blocks"]
-            del data[index]
+                                    person["text"] = " ".join(person["text"])
+                        if status in a["text"]:
+                            if comment in a["text"]:
+                                pass
+                            else:
+                                # pass
+                                a["text"] += comment
+
+                                for person in data[-2]["fields"]:
+                                    if person["text"].find(ps_status) == 0:
+                                        person["text"] = person["text"].split()
+                                        person["text"][0] += "\n"
+                                        person["text"][1] = str(a["text"].count("@"))
+                                        person["text"] = " ".join(person["text"])
+
+            except KeyError as e:
+                pass
+        
 
     def unescape(input):
         return html.unescape(input)
