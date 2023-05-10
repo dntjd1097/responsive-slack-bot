@@ -77,7 +77,7 @@ async def get_message(payload, a):
         del data[index]
     else:
 
-        for index, block in enumerate(data):
+        for block in data:
             try:
                 if "section" in block["type"]:
                     for a in block["fields"]:
