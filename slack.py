@@ -5,6 +5,8 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import asyncio
 import html
+import re
+from datetime import datetime, timezone, timedelta
 
 try:
     from config import *
@@ -28,6 +30,7 @@ def update(channel_id, message_ts, text, new_text):
 
 
 async def get_message(payload, a):
+    today = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d")
     channel_id = payload["channel"]["id"]
     user_id = payload["user"]["id"]
     user_name = payload["user"]["name"]
@@ -35,7 +38,7 @@ async def get_message(payload, a):
     text = payload["message"]["text"]
     comment = f"<@{user_id}>, "
     data = payload["message"]["blocks"]
-
+    get_date = ""
     if a == 1:
         status = "*참석*\n "
         op_status = "*불참*\n "
@@ -53,11 +56,20 @@ async def get_message(payload, a):
             {"type": "mrkdwn", "text": "*불참인원*\n 0 *(명)*"},
         ],
     }
-    # print(data)
+
     if "divider" in data[-2]["type"]:
         data.insert(-1, insert)
-    for block in data:
+
+    for index, block in enumerate(data):
         try:
+            if "context" in block["type"]:
+                get_date = block["elements"][0]["text"]
+                pattern = r"\d{4}-\d{2}-\d{2}"
+                matches = re.findall(pattern, get_date)
+                get_date = matches[0]
+            if ("actions" in block["type"]) and get_date and get_date < today:
+                del data[index]
+                return
             if "section" in block["type"]:
                 for a in block["fields"]:
                     if op_status in a["text"]:
