@@ -30,6 +30,7 @@ def update(channel_id, message_ts, text, new_text):
 
 
 async def get_message(payload, a):
+    check = None
     today = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d")
     channel_id = payload["channel"]["id"]
     user_id = payload["user"]["id"]
@@ -67,9 +68,9 @@ async def get_message(payload, a):
                 pattern = r"\d{4}-\d{2}-\d{2}"
                 matches = re.findall(pattern, get_date)
                 get_date = matches[0]
-            if ("actions" in block["type"]) and get_date and get_date < today:
-                del data[index]
-                return
+            if ("actions" in block["type"]) and get_date and get_date == today:
+                check = index
+
             if "section" in block["type"]:
                 for a in block["fields"]:
                     if op_status in a["text"]:
@@ -98,6 +99,10 @@ async def get_message(payload, a):
 
         except KeyError as e:
             pass
+        if check:
+            print(check)
+            data = payload["message"]["blocks"]
+            del data[index]
 
     def unescape(input):
         return html.unescape(input)
