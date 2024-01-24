@@ -1,40 +1,38 @@
-name: Deploy to cloudtype
+name: Python Docker Host Runner
+
 on:
   push:
-    branches:
-      - master
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: [self-hosted, linux, x64]
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Connect deploy key
-        uses: cloudtype-github-actions/connect@v1
-        with:
-          token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          ghtoken: ${{ secrets.GHP_TOKEN }}
-      - name: Deploy
-        uses: cloudtype-github-actions/deploy@v1
-        with:
-          token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          project: dntjd1097/responsive-slack-bot
-          stage: main
-          yaml: >
-            name: responsive-slack-bot
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-            app: python@3.9
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
 
-            options:
-              env:
-                - name: FLASK_ENV
-                  value: production
-                - name: SLACK_BOT_TOKEN
-                  value: ${{ secrets.SLACK_BOT_TOKEN }}
-                - name: SLACK_APP_TOKEN
-                  value: ${{ secrets.SLACK_APP_TOKEN }}
-              start: python slack.py
-            context:
-              git:
-                url: git@github.com:${{ github.repository }}.git
-                ref: ${{ github.ref }}
+      - name: Build Docker image
+        run: sudo docker build -f Dockerfile -t notions_slack_bot_docker_image .
+        working-directory: .
+
+      - name: Stop previous Docker container
+        run: sudo docker stop notions_slack_bot_docker_container || true
+        continue-on-error: true
+
+      - name: Remove previous Docker container
+        run: sudo docker rm notions_slack_bot_docker_container || true
+        continue-on-error: true
+      - name: Run Docker container
+        run: |
+          sudo docker run -d --name notions_slack_bot_docker_container \
+          -e SLACK_APP_TOKEN=${{ secrets.SLACK_APP_TOKEN }} \
+          -e SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }} \
+          notions_slack_bot_docker_image
